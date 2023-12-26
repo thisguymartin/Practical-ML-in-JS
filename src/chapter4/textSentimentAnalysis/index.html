@@ -4,14 +4,24 @@
   <title>Text Classification and Sentiment Analysis</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/toxicity"></script>
+
 </head>
 
 <body>
   <h1>Text Classification and Sentiment Analysis</h1>
 
   <main>
-    
+
+    <div>
+      <label for="text">Enter text to analyze:</label>
+      <input type="text" name="text" id="text"/>
+      <button id="analyzeButton">Analyze</button>
+    </div>
+
+    <div id="result">Sentiment score: </div>
+
+
   </main>
   <script src="index.js"></script>
 </body>

@@ -7,20 +7,18 @@ async function app()
   {
     const text = document.getElementById("text").value
     const resultElement = document.getElementById("result")
-
+    // analyze the text and get the score from 0 to 1 (0 is negative, 1 is positive)
     const scoreAnalysis = await analyze(text)
 
     resultElement.innerText = `Sentiment score: ${getSentiment(scoreAnalysis)}`
-
   }
   
 
   const analyze = async (text) =>
   {
-
     const trimmedText = text.trim().toLowerCase().replace(/(\.|\,|\!)/g, "").split(" ")
 
-    // extract model
+    // extract model 
     const loadModel = async () =>
     {
       const model = await tf.loadLayersModel("https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json")
@@ -28,19 +26,24 @@ async function app()
     }
 
 
-    // extract pre existing model metadata
     const loadModelMetaData = async () =>
     {
+      // load model metadata to convert text to sequence of numbers 
       const response = await fetch("https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json")
       return await response.json()
     }
 
     // convert text to sequence based on the pre existing model metadata
+    //  Example:
+    //  [
+    //    13, 2051, 6, 176, 39, 14, 740
+    //  ]
     const sequence = await Promise.all(trimmedText.map(async (word) =>
     {
       const metaData = await loadModelMetaData();
       const wordIndex = metaData.word_index[word]
     
+      // if word is not in the dictionary, return 2
       if (wordIndex === 'undefined' || wordIndex === null)
       {
         return 2
@@ -55,10 +58,10 @@ async function app()
       return wordIndex + metaData.index_from
 
     }))
-
-    // convert sequence to tensor of 100 length
-    //   Example: 
-
+    
+    // pad sequence to 100 length with 0 if sequence is less than 100
+    // truncate sequence to 100 length if sequence is more than 100
+    //  Example:
     //   [
     //     0,  0,  0,   0, 0, 0, 0, 0, 0,  0,    0, 0,
     //     0,  0,  0,   0, 0, 0, 0, 0, 0,  0,    0, 0,
@@ -91,6 +94,7 @@ async function app()
       return sequence
     }
 
+    // load model metadata 
     const metadata = await loadModelMetaData()
 
     const padSequenceResult = padSequence(sequence, metadata.max_len)
@@ -101,7 +105,9 @@ async function app()
 
     const model = await loadModel()
 
+    // convert sequence to tensor 
     const tfInput = tf.tensor2d([padSequenceResult], [1, metadata.max_len])
+  
     const prediction = model.predict(tfInput)
 
     console.log(prediction)
@@ -115,6 +121,7 @@ async function app()
 
   const getSentiment = (score) =>
   {
+    // score is from 0 to 1 (0 is negative, 1 is positive) 
     if (score > 0.66)
     {
       return "Positive"
